@@ -119,9 +119,10 @@ ul.clean li{margin:4px 0}
     <div class="card">
       <p style="margin:0">全18問・約5分</p>
       <p class="note" style="margin:4px 0 0">理想の自分ではなく、「実際にそうしている」ものを選ぶのがコツです。</p>
-      <label class="field" for="nick">お名前（ニックネーム可・任意）</label>
-      <input type="text" id="nick" maxlength="30" placeholder="例：山田 花子">
-      <div class="row" style="margin-top:24px"><button class="btn" id="start">診断をはじめる</button></div>
+      <label class="field" for="nick">お名前</label>
+      <input type="text" id="nick" maxlength="30" placeholder="例：山田 花子" autocomplete="name">
+      <p class="note" style="margin:10px 0 0">回答と診断結果は、コミュニティ運営のためにKANOE運営事務局へ共有されます。</p>
+      <div class="row" style="margin-top:24px"><button class="btn" id="start" disabled>診断をはじめる</button></div>
     </div>
   </section>
 
@@ -352,6 +353,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 const $ = id => document.getElementById(id);
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));window.scrollTo(0,0)}
 
+$("nick").oninput = () => { $("start").disabled = !$("nick").value.trim(); };
 $("start").onclick = () => { idx = 0; render(); show("s-quiz"); };
 
 function render(){
@@ -455,6 +457,24 @@ function finish(){
 
   $("bar").style.width = "100%";
   show("s-result");
+
+  send({
+    v: VERSION, name: nick, style,
+    scores: Object.fromEntries(AXES.map(a => [a.k, Math.round(pct[a.k]*100)])),
+    answers: Q.map((q,qi) => q.multi ? null : {q: qi, i: ans[qi], qt: q.t, text: q.o[ans[qi]][0]}).filter(Boolean),
+    give, want
+  });
+}
+
+// 回答の送信先（Google Apps Script のウェブアプリURL）。空なら送信しない
+const ENDPOINT = "";
+const VERSION = 1;
+let sent = false;
+function send(data){
+  if (!ENDPOINT || sent) return;
+  sent = true;
+  fetch(ENDPOINT, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(data)})
+    .catch(() => { sent = false; });
 }
 
 function drawRadar(pct){
@@ -481,6 +501,7 @@ $("copy").onclick = async () => {
   $("toast").classList.add("on"); setTimeout(()=>$("toast").classList.remove("on"),1600);
 };
 $("retry").onclick = () => {
+  sent = false;
   ans.forEach((_,i)=> ans[i] = Q[i].multi ? [] : null);
   Q.forEach((q,i)=>{ if(!q.multi) order[i] = shuffle(q.o.map((_,j)=>j)); });
   show("s-intro");
