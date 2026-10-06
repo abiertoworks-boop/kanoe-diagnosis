@@ -9,23 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f7f4ef; --surface:#ffffff; --ink:#2a2622; --muted:#7a716a; --line:#e6dfd6;
+  --bg:#f3f3f3; --surface:#ffffff; --ink:#262626; --muted:#6b6b6b; --line:#dcdcdc;
+  --grad:linear-gradient(180deg,#f5f5f5 0%,#e4e4e4 55%,#cfcfcf 100%);
   --accent:#c2502e; --accent-soft:#f6e3db; --sel:#fbefe9;
   --radius:14px;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#1b1916; --surface:#25221e; --ink:#eee8e1; --muted:#a59b91; --line:#3a352f;
-    --accent:#e8805c; --accent-soft:#3d2a22; --sel:#33261f;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#1b1916; --surface:#25221e; --ink:#eee8e1; --muted:#a59b91; --line:#3a352f;
-  --accent:#e8805c; --accent-soft:#3d2a22; --sel:#33261f;
-}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;line-height:1.8;font-size:16px;-webkit-font-smoothing:antialiased}
+body{background:#e4e4e4 var(--grad) fixed;min-height:100vh;color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;line-height:1.8;font-size:16px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:680px;margin:0 auto;padding:40px 16px 80px}
 h1,h2,h3{font-family:"Shippori Mincho",serif;font-weight:700;line-height:1.5;margin:0}
 .brand{font-size:13px;letter-spacing:.2em;color:var(--accent);font-weight:700}
@@ -117,7 +108,7 @@ ul.clean li{margin:4px 0}
     </div>
 
     <div class="card">
-      <p style="margin:0">全18問・約5分</p>
+      <p style="margin:0">全15問・約5分</p>
       <p class="note" style="margin:4px 0 0">理想の自分ではなく、「実際にそうしている」ものを選ぶのがコツです。</p>
       <label class="field" for="nick">お名前</label>
       <input type="text" id="nick" maxlength="30" placeholder="例：山田 花子" autocomplete="name">
@@ -224,12 +215,6 @@ const Q = [
     ["なぜ、その仕事をしているのか", {L:3,T:1}, {LIS:2}],
     ["自分に何をしてくれるのか", {}, {}]
   ]},
-  {cat:"傾聴", t:"初対面の人と話しているとき、あなたはどちらに近いですか？", o:[
-    ["自分の経験を伝える方が得意", {G:1}, {SUP:2}],
-    ["相手から質問されたら話す", {L:1}, {}],
-    ["相手に質問する方が得意", {L:2}, {LIS:2}],
-    ["相手の話から、新しい問いを考えるのが得意", {L:3,C:1}, {CRE:1,BUI:1}]
-  ]},
   {cat:"傾聴", t:"自分が話している途中で、相手があまり話していないことに気づいたら？", o:[
     ["興味がなさそうなので、要点を話し切る", {}, {}],
     ["相手から質問されるまで話す", {}, {}],
@@ -262,12 +247,6 @@ const Q = [
     ["相手の仕事なので、正式に依頼して対価を払う", {R:3,T:1}, {}],
     ["まず相手に、どういう形なら受けられるか聞く", {R:2,L:1}, {}]
   ]},
-  {cat:"敬意", t:"専門家の仲間に、仕事のことで相談したくなりました。", o:[
-    ["気軽に、思いついたときに聞く", {}, {}],
-    ["自分で調べても分からなければ聞く", {R:1}, {}],
-    ["相手の時間をもらうことを意識し、要点をまとめてから聞く", {R:2,L:1}, {}],
-    ["相手の専門の時間として、必要なら有料で正式に相談する", {R:3,T:1}, {}]
-  ]},
   {cat:"共創", t:"自分の事業について悩んでいるとき、あなたは？", o:[
     ["自分で答えを出す", {}, {}],
     ["専門家に答えを教えてもらう", {R:1}, {}],
@@ -279,12 +258,6 @@ const Q = [
     ["「自分ならこうする」とアドバイスする", {G:1}, {SUP:1}],
     ["問いを返して、その人の考えを深める手伝いをする", {C:3,L:2}, {BUI:2,LIS:1}],
     ["面白がって、広げる案をどんどん出す", {C:2,G:1}, {CRE:3}]
-  ]},
-  {cat:"共創", t:"コミュニティで新しい企画が始まります。あなたの立ち位置は？", o:[
-    ["面白そうなら、参加者として加わる", {C:1}, {}],
-    ["企画のアイデアを出す", {C:2}, {CRE:2}],
-    ["合いそうな人を誘ったり、声をかけたりする", {C:1,G:2}, {CON:2}],
-    ["準備や運営など、手を動かす役を引き受ける", {C:3,G:1}, {BUI:2}]
   ]},
   {cat:"信頼", t:"交流会で「今度、資料をお送りしますね」と言いました。", o:[
     ["相手から連絡があれば送る", {}, {}],
@@ -420,7 +393,7 @@ function finish(){
   const stars = p => Math.max(1, Math.min(5, Math.round(p * 5)));
 
   // スタイル：最多得点。同点なら「力の貸し方」の回答を優先
-  const lastStyle = Object.keys(Q[15].o[ans[15]][2])[0];
+  const lastStyle = Object.keys(Q[12].o[ans[12]][2])[0];
   const style = Object.keys(st).sort((a,b) => st[b]-st[a] || (b===lastStyle) - (a===lastStyle))[0];
   const S = STYLES[style];
 
@@ -428,8 +401,8 @@ function finish(){
   const low = AXES.map(a=>a.k).sort((a,b) => pct[a]-pct[b])[0];
   const lowName = AXES.find(a=>a.k===low).name;
 
-  const give = ans[16].map(i => Q[16].o[i]);
-  const want = ans[17].map(i => Q[17].o[i]);
+  const give = ans[13].map(i => Q[13].o[i]);
+  const want = ans[14].map(i => Q[14].o[i]);
 
   $("r-name").textContent = S.name;
   $("r-ja").textContent = S.ja;
@@ -468,7 +441,7 @@ function finish(){
 
 // 回答の送信先（Google Apps Script のウェブアプリURL）。空なら送信しない
 const ENDPOINT = "";
-const VERSION = 1;
+const VERSION = 2;
 let sent = false;
 function send(data){
   if (!ENDPOINT || sent) return;
