@@ -23,6 +23,7 @@
   --brush:"Yuji Syuku","Shippori Mincho B1",serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{
   background:var(--ink);
@@ -85,6 +86,8 @@ p{margin:0}
 .attr span{color:var(--text);font-size:13px}
 .attr:last-child{grid-column:1/-1}
 .cta-area{margin-top:26px}
+.guide{margin-top:14px;padding-top:14px;border-top:1px dashed #b8a780;font-family:var(--serif);font-weight:700;color:var(--red)!important}
+.guide-r{margin-top:28px;font-family:var(--serif);font-size:14px;color:var(--gold2);line-height:1.9}
 .meta-line{text-align:center;margin-top:10px;font-size:13px;color:var(--muted)}
 .disclaimer{margin-top:28px;text-align:center}
 
@@ -252,6 +255,7 @@ p{margin:0}
     <p>人脈を広げる人。<br>人の話を聞く人。<br>人を支える人。<br>新しいものを生み出す人。<br>人や組織を育てる人。</p>
     <p style="margin-top:14px">人との関わり方には、<br>それぞれ得意なスタイルがあります。</p>
     <p class="muted" style="margin-top:14px">10問の質問に答えて、あなたの「交流力」を<br>戦国武将にたとえてみましょう。</p>
+    <p class="guide">人との交流時に、<br>自分と相手の特性を知る目安となります。</p>
   </div>
 
   <div class="attrs">
@@ -264,6 +268,7 @@ p{margin:0}
 
   <div class="cta-area">
     <button class="btn" id="start">いざ、診断開始！</button>
+    <button class="btn sub" id="last" hidden style="margin-top:10px"></button>
     <p class="meta-line">全10問 ・ 約2分 ・ 登場武将 全20人</p>
   </div>
   <p class="small disclaimer">※この診断は、戦国武将をモチーフにしたエンターテインメントコンテンツです。<br>実在した人物の性格や能力を科学的に判定するものではありません。</p>
@@ -368,6 +373,7 @@ p{margin:0}
       <button class="btn sub" id="retry">もう一度診断する</button>
     </div>
     <div class="gallery" id="gallery" hidden></div>
+    <p class="guide-r">この結果は、人との交流時に<br>自分と相手の特性を知る目安となります。</p>
     <p class="small disclaimer">※この診断は、戦国武将をモチーフにしたエンターテインメントコンテンツです。<br>実在した人物の性格や能力を科学的に判定するものではありません。</p>
   </div>
 </section>
@@ -647,6 +653,7 @@ function judge(){
 async function summon(){
   const r = judge();
   lastScores = r; current = r.busho;
+  saveLast(r);
   const pre = new Image(); pre.src = `img/${current.id}.webp`;
   show("s-summon");
   const lines = ["軍議終了。","あなたの武将を召喚します……","いざ、天下分け目の判定へ……"];
@@ -802,9 +809,36 @@ $("share").onclick = async () => {
   };
 };
 
+/* ---------- 前回の結果（この端末のブラウザにだけ保存） ---------- */
+const LAST_KEY = "kouryu-busho-last";
+function saveLast(r){
+  try { localStorage.setItem(LAST_KEY, JSON.stringify({id:r.busho.id, cnt:r.cnt, rank:r.rank, at:Date.now()})); } catch(e) {}
+}
+function loadLast(){
+  try {
+    const d = JSON.parse(localStorage.getItem(LAST_KEY));
+    if (!d || !byId[d.id] || !Array.isArray(d.rank)) return null;
+    return {cnt:d.cnt, rank:d.rank, main:d.rank[0], sub:d.rank[1], busho:byId[d.id], at:d.at};
+  } catch(e) { return null; }
+}
+function updateLastButton(){
+  const r = loadLast(), b = $("last");
+  if (!r) { b.hidden = true; return; }
+  const dt = new Date(r.at);
+  b.textContent = `前回の結果を見る（${r.busho.name}・${dt.getMonth()+1}/${dt.getDate()}）`;
+  b.hidden = false;
+}
+$("last").onclick = () => {
+  const r = loadLast(); if (!r) return;
+  lastScores = r; current = r.busho;
+  renderResult(r);
+};
+updateLastButton();
+
 /* ---------- retry ---------- */
 $("retry").onclick = () => {
   ans.fill(null); order = Q.map(() => shuffle([0,1,2,3,4]));
+  updateLastButton();
   show("s-intro");
 };
 </script>
